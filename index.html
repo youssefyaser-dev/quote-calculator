@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quote Calculator</title>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#f4f6f8;margin:0;padding:32px;color:#1d2733}
+.card{max-width:640px;margin:auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 2px 12px #0001}
+h1{margin:0 0 4px;font-size:22px}.sub{color:#667;font-size:13px;margin-bottom:20px}
+label{display:block;font-size:13px;margin:12px 0 4px;color:#445}
+input,select{width:100%;padding:9px;border:1px solid #cbd3dc;border-radius:8px;font-size:15px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse;margin-top:20px;font-size:15px}
+td{padding:8px 0;border-bottom:1px solid #eef}td:last-child{text-align:right}
+.total td{font-weight:700;font-size:18px;border:none;padding-top:14px}
+button{margin-top:18px;padding:10px 16px;border:0;border-radius:8px;background:#1f6feb;color:#fff;font-size:14px;cursor:pointer}
+.note{font-size:12px;color:#889;margin-top:16px}
+</style></head><body><div class="card">
+<h1>Quote Calculator</h1><div class="sub">Sample rates only.</div>
+<div class="row"><div><label for="hours">Estimated hours</label><input id="hours" type="number" min="0" value="10"></div>
+<div><label for="rate">Hourly rate</label><input id="rate" type="number" min="0" value="20"></div></div>
+<div class="row"><div><label for="rush">Delivery</label><select id="rush"><option value="0">Standard</option><option value="25">Rush (+25%)</option></select></div>
+<div><label for="disc">Discount %</label><input id="disc" type="number" min="0" max="100" value="0"></div></div>
+<div class="row"><div><label for="tax">Tax %</label><input id="tax" type="number" min="0" value="0"></div>
+<div><label for="cur">Currency</label><select id="cur"><option>USD</option><option>EGP</option><option>EUR</option></select></div></div>
+<table><tr><td>Base</td><td id="base"></td></tr><tr><td>Rush fee</td><td id="rushfee"></td></tr>
+<tr><td>Discount</td><td id="discount"></td></tr><tr><td>Tax</td><td id="taxamt"></td></tr>
+<tr class="total"><td>Total</td><td id="total"></td></tr></table>
+<button id="copy">Copy summary</button><div class="note" id="msg"></div>
+</div>
+<script>
+function quote(h,r,rush,d,t){const c=x=>Math.max(0,Number.isFinite(+x)?+x:0);h=c(h);r=c(r);rush=c(rush);d=Math.min(100,c(d));t=c(t);const base=h*r,fee=base*rush/100,disc=(base+fee)*d/100,sub=base+fee-disc,tax=sub*t/100;
+return{base,fee,disc,tax,total:sub+tax}}
+const $=id=>document.getElementById(id);
+function render(){const n=id=>Math.max(0,parseFloat($(id).value)||0);
+const q=quote(n('hours'),n('rate'),n('rush'),Math.min(100,n('disc')),n('tax')),c=$('cur').value;
+const f=x=>x.toLocaleString('en-US',{style:'currency',currency:c});
+$('base').textContent=f(q.base);$('rushfee').textContent=f(q.fee);$('discount').textContent='-'+f(q.disc);
+$('taxamt').textContent=f(q.tax);$('total').textContent=f(q.total);window._q=q;return q}
+['hours','rate','rush','disc','tax','cur'].forEach(i=>$(i).addEventListener('input',render));
+$('copy').onclick=()=>{const q=render();const s=`Quote: ${$('hours').value}h x ${$('rate').value} = ${$('total').textContent} total`;
+navigator.clipboard&&navigator.clipboard.writeText(s).catch(()=>{});$('msg').textContent=s};
+render();
+if(typeof module!=='undefined')module.exports={quote};
+</script></body></html>
